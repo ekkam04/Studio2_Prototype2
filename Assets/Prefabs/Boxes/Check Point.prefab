@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 635020360584343186}
   - component: {fileID: 614180261977191183}
   m_Layer: 0
-  m_Name: Box Life
+  m_Name: Check Point
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
