@@ -32,6 +32,9 @@ public class PlayerController : MonoBehaviour
     public float trampolineHeightApex = 2f;
     public float trampolineDuration = 1f;
 
+    public float boxHeightApex = 2f;
+    public float boxDuration = 1f;
+
     float currentJumpDuration;
 
     public float downwardsGravityMultiplier = 1f;
@@ -94,6 +97,18 @@ public class PlayerController : MonoBehaviour
             {
                 rb.velocity = new Vector3(rb.velocity.x, 0, rb.velocity.z);
                 StartJump(trampolineHeightApex, trampolineDuration);
+            }
+            else if (hit.collider.tag == "isBoxNormal")
+            {
+                rb.velocity = new Vector3(rb.velocity.x, 0, rb.velocity.z);
+                StartJump(boxHeightApex, boxDuration);
+                Destroy(hit.collider.gameObject);
+            }
+            else if (hit.collider.tag == "isBoxNormalPlus")
+            {
+                rb.velocity = new Vector3(rb.velocity.x, 0, rb.velocity.z);
+                StartJump(boxHeightApex, boxDuration);
+                Destroy(hit.collider.gameObject);
             }
         }
         else

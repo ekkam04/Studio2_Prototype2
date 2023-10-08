@@ -22485,6 +22485,8 @@ MonoBehaviour:
   jumpDuration: 1
   trampolineHeightApex: 14
   trampolineDuration: 1
+  boxHeightApex: 3
+  boxDuration: 0.5
   downwardsGravityMultiplier: 3
   speed: 5
   maxSpeed: 7
