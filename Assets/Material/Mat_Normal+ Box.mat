@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Mat_Normal+ Box
-  m_Shader: {fileID: -6465566751694194690, guid: 82ce64fe1389c84488a55b24a49b954e, type: 3}
+  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -74,7 +74,7 @@ Material:
     - _Mode: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.02
-    - _Radius: 5
+    - _Radius: 4
     - _SmoothnessTextureChannel: 0
     - _Softness: 1
     - _SpecularHighlights: 1
@@ -84,7 +84,7 @@ Material:
     m_Colors:
     - _Color: {r: 0.38679248, g: 0.09764451, b: 0.03794944, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _Position: {r: -1.7639618, g: 0.5330701, b: -0.04461527, a: 0}
+    - _Position: {r: -2.147282, g: 0.5161094, b: 1.8352102, a: 0}
   m_BuildTextureStacks: []
 --- !u!114 &4178943495794243190
 MonoBehaviour:

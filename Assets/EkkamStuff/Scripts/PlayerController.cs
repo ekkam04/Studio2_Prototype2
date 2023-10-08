@@ -3,9 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.EventSystems;
+using System.ComponentModel;
 
 public class PlayerController : MonoBehaviour
 {
+    public int lives = 3;
+    public Vector3 currentCheckpoint;
+
     [SerializeField] Material[] materials;
     [SerializeField] float visibilityRadius = 5f;
     [SerializeField] float visibilitySoftness = 0.5f;
@@ -19,15 +23,9 @@ public class PlayerController : MonoBehaviour
     float verticalInput;
 
     Vector3 moveDirection;
-    // public Vector3 currentCheckpoint;
-
-    // public List<Vector3> previousPositions = new();
-    // public GameObject pastPlayer;
-    // public GameObject pastPlayerTarget;
-    // public GameObject pathOrb;
 
     Rigidbody rb;
-    Animator anim;
+    public Animator anim;
 
     public float jumpHeightApex = 2f;
     public float jumpDuration = 1f;
@@ -62,6 +60,8 @@ public class PlayerController : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
         anim = GetComponent<Animator>();
+
+        currentCheckpoint = transform.position;
 
         gravity = -2 * jumpHeightApex / (jumpDuration * jumpDuration);
         initialJumpVelocity = Mathf.Abs(gravity) * jumpDuration;
@@ -219,5 +219,11 @@ public class PlayerController : MonoBehaviour
         anim.SetBool("isJumping", true);
         jumpStartTime = Time.time;
         rb.velocity = Vector3.up * initialJumpVelocity;
+    }
+
+    public void Respawn()
+    {
+        transform.position = currentCheckpoint;
+        rb.velocity = Vector3.zero;
     }
 }
