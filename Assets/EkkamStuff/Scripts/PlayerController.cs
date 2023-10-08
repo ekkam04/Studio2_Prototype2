@@ -3,16 +3,27 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.EventSystems;
-using System.ComponentModel;
 
 public class PlayerController : MonoBehaviour
 {
+    [SerializeField] public AudioSource audioSource;
+    [SerializeField] AudioClip jumpSound;
+    [SerializeField] AudioClip landSound;
+    [SerializeField] AudioClip bounceSound;
+    [SerializeField] AudioClip crateSound;
+    [SerializeField] AudioClip checkpointSound;
+    [SerializeField] public AudioClip failSound;
+
     public int lives = 3;
     public Vector3 currentCheckpoint;
+    UIManager uiManager;
 
     [SerializeField] Material[] materials;
     [SerializeField] float visibilityRadius = 5f;
     [SerializeField] float visibilitySoftness = 0.5f;
+
+    [SerializeField] ParticleSystem checkpointParticles;
+    [SerializeField] ParticleSystem starParticles;
 
     public Transform orientation;
     public Transform cameraObj;
@@ -24,7 +35,7 @@ public class PlayerController : MonoBehaviour
 
     Vector3 moveDirection;
 
-    Rigidbody rb;
+    public Rigidbody rb;
     public Animator anim;
 
     public float jumpHeightApex = 2f;
@@ -45,6 +56,7 @@ public class PlayerController : MonoBehaviour
     public float groundDrag;
 
     public bool isJumping = false;
+    public bool hasLanded = true;
     public bool isGrounded;
     public bool allowDoubleJump = false;
 
@@ -58,8 +70,12 @@ public class PlayerController : MonoBehaviour
 
     private void Start()
     {
+        ChangeMaterialShaderNormal();
+
         rb = GetComponent<Rigidbody>();
         anim = GetComponent<Animator>();
+
+        uiManager = GameObject.FindObjectOfType<UIManager>();
 
         currentCheckpoint = transform.position;
 
@@ -71,7 +87,7 @@ public class PlayerController : MonoBehaviour
 
         foreach (Material mat in materials)
         {
-            mat.SetFloat("_Radius", visibilityRadius);
+            mat.SetFloat("_Radius", 30f);
             mat.SetFloat("_Softness", visibilitySoftness);
         }
     }
@@ -102,22 +118,68 @@ public class PlayerController : MonoBehaviour
         if (Physics.Raycast(transform.position + new Vector3(0, 0.5f, 0), Vector3.down, out hit, groundDistance + 0.1f))
         {
             isGrounded = true;
-            if (hit.collider.tag == "isTrampolineMetal")
+
+            if (!hasLanded)
             {
-                rb.velocity = new Vector3(rb.velocity.x, 0, rb.velocity.z);
-                StartJump(trampolineHeightApex, trampolineDuration);
+                audioSource.PlayOneShot(landSound);
+                hasLanded = true;
             }
-            else if (hit.collider.tag == "isBoxNormal")
+
+            switch (hit.collider.tag)
             {
-                rb.velocity = new Vector3(rb.velocity.x, 0, rb.velocity.z);
-                StartJump(boxHeightApex, boxDuration);
-                Destroy(hit.collider.gameObject);
-            }
-            else if (hit.collider.tag == "isBoxNormalPlus")
-            {
-                rb.velocity = new Vector3(rb.velocity.x, 0, rb.velocity.z);
-                StartJump(boxHeightApex, boxDuration);
-                Destroy(hit.collider.gameObject);
+                case "isTrampolineMetal":
+                    rb.velocity = new Vector3(rb.velocity.x, 0, rb.velocity.z);
+                    audioSource.PlayOneShot(bounceSound);
+                    StartJump(trampolineHeightApex, trampolineDuration);
+                    break;
+
+                case "isBoxNormal":
+                    rb.velocity = new Vector3(rb.velocity.x, 0, rb.velocity.z);
+                    audioSource.PlayOneShot(crateSound);
+                    StartJump(boxHeightApex, boxDuration);
+
+                    // turn off box collider and mesh renderer
+                    hit.collider.gameObject.GetComponent<BoxCollider>().enabled = false;
+                    hit.collider.gameObject.GetComponent<MeshRenderer>().enabled = false;
+                    break;
+
+                case "isBoxNormalPlus":
+                    rb.velocity = new Vector3(rb.velocity.x, 0, rb.velocity.z);
+                    audioSource.PlayOneShot(crateSound);
+                    StartJump(boxHeightApex + 0.5f, boxDuration);
+
+                    // turn off box collider and mesh renderer
+                    hit.collider.gameObject.GetComponent<BoxCollider>().enabled = false;
+                    hit.collider.gameObject.GetComponent<MeshRenderer>().enabled = false;
+                    break;
+
+                case "isCheckpoint":
+                    rb.velocity = new Vector3(rb.velocity.x, 0, rb.velocity.z);
+                    audioSource.PlayOneShot(checkpointSound);
+                    StartJump(boxHeightApex, boxDuration);
+                    lives = 3;
+                    uiManager.ReplenishHearts();
+
+                    // set current checkpoint
+                    Vector3 checkpointPosition = hit.collider.gameObject.transform.position;
+                    currentCheckpoint = checkpointPosition + new Vector3(0, 1, 0);
+                    hit.collider.gameObject.transform.position = checkpointPosition + new Vector3(0, -0.75f, 0);
+                    hit.collider.gameObject.GetComponent<BoxCollider>().enabled = false;
+                    checkpointParticles.Play();
+                    break;
+
+                case "isFinishLine":
+                    rb.velocity = new Vector3(rb.velocity.x, 0, rb.velocity.z);
+                    audioSource.PlayOneShot(checkpointSound);
+                    StartJump(boxHeightApex, boxDuration);
+
+                    // set current checkpoint
+                    Vector3 finishLinePosition = hit.collider.gameObject.transform.position;
+                    currentCheckpoint = finishLinePosition + new Vector3(0, 1, 0);
+                    hit.collider.gameObject.transform.position = finishLinePosition + new Vector3(0, -0.75f, 0);
+                    hit.collider.gameObject.GetComponent<BoxCollider>().enabled = false;
+                    starParticles.Play();
+                    break;
             }
         }
         else
@@ -132,13 +194,20 @@ public class PlayerController : MonoBehaviour
             if (!isGrounded && allowDoubleJump && !doubleJumped)
             {
                 doubleJumped = true;
+                audioSource.PlayOneShot(jumpSound);
                 StartJump(jumpHeightApex, jumpDuration);
             }
             else if (isGrounded)
             {
                 doubleJumped = false;
+                audioSource.PlayOneShot(jumpSound);
                 StartJump(jumpHeightApex, jumpDuration);
             }
+        }
+
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            ChangeMaterialShaderSpherical();
         }
 
         if (isGrounded && !isJumping)
@@ -200,6 +269,7 @@ public class PlayerController : MonoBehaviour
             if (Time.time - jumpStartTime >= currentJumpDuration)
             {
                 isJumping = false;
+                hasLanded = false;
             }
         }
         else
@@ -225,5 +295,52 @@ public class PlayerController : MonoBehaviour
     {
         transform.position = currentCheckpoint;
         rb.velocity = Vector3.zero;
+
+        // Enable box colliders and mesh renderers
+        GameObject[] normalBoxes = GameObject.FindGameObjectsWithTag("isBoxNormal");
+        foreach (GameObject box in normalBoxes)
+        {
+            box.GetComponent<BoxCollider>().enabled = true;
+            box.GetComponent<MeshRenderer>().enabled = true;
+        }
+
+        GameObject[] normalPlusBoxes = GameObject.FindGameObjectsWithTag("isBoxNormalPlus");
+        foreach (GameObject box in normalPlusBoxes)
+        {
+            box.GetComponent<BoxCollider>().enabled = true;
+            box.GetComponent<MeshRenderer>().enabled = true;
+        }
+    }
+
+    void ChangeMaterialShaderSpherical()
+    {
+        // Change the shader of the material to SphericalShaderGraph
+        foreach (Material mat in materials)
+        {
+            mat.shader = Shader.Find("Shader Graphs/SphericalShaderGraph");
+        }
+        StartCoroutine(AnimateVisibilityRadius());
+    }
+
+    void ChangeMaterialShaderNormal()
+    {
+        // Change the shader of the material back to Standard
+        foreach (Material mat in materials)
+        {
+            mat.shader = Shader.Find("Standard");
+        }
+    }
+
+    IEnumerator AnimateVisibilityRadius()
+    {
+        // change radius from 30 to 5
+        for (float i = 30; i >= visibilityRadius; i -= 0.1f)
+        {
+            foreach (Material mat in materials)
+            {
+                mat.SetFloat("_Radius", i);
+            }
+            yield return new WaitForSeconds(0.01f);
+        }
     }
 }

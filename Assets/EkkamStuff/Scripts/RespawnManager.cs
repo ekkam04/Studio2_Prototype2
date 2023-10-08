@@ -16,16 +16,23 @@ public class RespawnManager : MonoBehaviour
     void OnTriggerEnter(Collider col) {
         if (col.gameObject.tag == "Player") {
 
-            if (playerController.lives > 0) {
-                playerController.lives -= 1;
-                print("You have " + playerController.lives + " lives left. Respawning...");
-                // playerController.Respawn();
+            playerController.lives -= 1;
+            if (playerController.lives >= 1) {
+                print("You have " + playerController.lives + " live(s) left. Respawning...");
+                
+                playerController.rb.velocity = Vector3.zero;
+                playerController.GetComponent<CapsuleCollider>().enabled = false;
+                playerController.audioSource.PlayOneShot(playerController.failSound);
                 uiManager.PlayRespawnAnimation();
             }
             else
             {
-                // Game Over
-                print("Game Over");
+                print("You have no lives left. Game over.");
+
+                playerController.rb.velocity = Vector3.zero;
+                playerController.GetComponent<CapsuleCollider>().enabled = false;
+                playerController.audioSource.PlayOneShot(playerController.failSound);
+                uiManager.PlayGameOverAnimation();
             }
         }
     }

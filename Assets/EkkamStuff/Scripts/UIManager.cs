@@ -1,10 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class UIManager : MonoBehaviour
 {
     [SerializeField] RectTransform fadeImage;
+    [SerializeField] RectTransform[] hearts;
+
     public GameObject pauseMenu;
     PlayerController playerController;
     
@@ -28,24 +31,14 @@ public class UIManager : MonoBehaviour
 
     IEnumerator RespawnAnimation()
     {
-        // yield return new WaitForSeconds(1f);
-
-        // LeanTween.scale(fadeImage, Vector3.zero, 0);
-        // fadeImage.gameObject.SetActive(true);
-        // LeanTween.scale(fadeImage, new Vector3(1, 1, 1), 0.5f).setEase(LeanTweenType.easeInOutQuad);
-
-        // yield return new WaitForSeconds(1f);
-        // playerController.Respawn();
-
-        // LeanTween.scale(fadeImage, Vector3.zero, 1f).setEase(LeanTweenType.easeInOutQuad);
-
         LeanTween.alpha(fadeImage, 0, 0);
-        // yield return new WaitForSeconds(0.1f);
         fadeImage.gameObject.SetActive(true);
 
         LeanTween.alpha(fadeImage, 1, 0.5f);
+        PlayHeartDecreaseAnimation();
         yield return new WaitForSeconds(1f);
 
+        playerController.GetComponent<CapsuleCollider>().enabled = true;
         playerController.Respawn();
         playerController.anim.SetTrigger("dizzy");
 
@@ -54,5 +47,46 @@ public class UIManager : MonoBehaviour
 
         fadeImage.gameObject.SetActive(false);
 
+    }
+
+    public void PlayGameOverAnimation()
+    {
+        StartCoroutine(GameOverAnimation());
+    }
+
+    IEnumerator GameOverAnimation()
+    {
+        LeanTween.alpha(fadeImage, 0, 0);
+        fadeImage.gameObject.SetActive(true);
+
+        LeanTween.alpha(fadeImage, 1, 0.5f);
+        PlayHeartDecreaseAnimation();
+
+        yield return new WaitForSeconds(1.5f);
+        playerController.GetComponent<CapsuleCollider>().enabled = true;
+        playerController.Respawn();
+
+        // Game Over
+        SceneManager.LoadScene("Game Over Screen");
+
+    }
+
+    public void PlayHeartDecreaseAnimation()
+    {
+        StartCoroutine(HeartDecreaseAnimation());
+    }
+
+    IEnumerator HeartDecreaseAnimation()
+    {
+        LeanTween.scale(hearts[playerController.lives], Vector3.zero, 1f);
+        yield return new WaitForSeconds(1f);
+    }
+
+    public void ReplenishHearts()
+    {
+        for (int i = 0; i < hearts.Length; i++)
+        {
+            LeanTween.scale(hearts[i], Vector3.one, 1f);
+        }
     }
 }
