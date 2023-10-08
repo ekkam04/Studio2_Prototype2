@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 3441724505735044694}
   m_Layer: 0
   m_Name: Box Trampoline Metal
-  m_TagString: Untagged
+  m_TagString: isTrampolineMetal
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
