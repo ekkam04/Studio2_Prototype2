@@ -6,6 +6,9 @@ using UnityEngine.EventSystems;
 
 public class PlayerController : MonoBehaviour
 {
+    [SerializeField] Material[] materials;
+    [SerializeField] float visibilityRadius = 5f;
+    [SerializeField] float visibilitySoftness = 0.5f;
 
     public Transform orientation;
     public Transform cameraObj;
@@ -65,6 +68,12 @@ public class PlayerController : MonoBehaviour
 
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
+
+        foreach (Material mat in materials)
+        {
+            mat.SetFloat("_Radius", visibilityRadius);
+            mat.SetFloat("_Softness", visibilitySoftness);
+        }
     }
 
     void Update()
@@ -148,6 +157,12 @@ public class PlayerController : MonoBehaviour
 
         // Limit velocity
         ControlSpeed();
+
+        // Update the Position variable in the all the materials
+        foreach (Material mat in materials)
+        {
+            mat.SetVector("_Position", transform.position);
+        }
 
     }
 
