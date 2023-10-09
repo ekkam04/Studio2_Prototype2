@@ -7,6 +7,7 @@ using UnityEngine.EventSystems;
 public class PlayerController : MonoBehaviour
 {
     [SerializeField] public AudioSource audioSource;
+    [SerializeField] AudioClip[] footstepSounds;
     [SerializeField] AudioClip jumpSound;
     [SerializeField] AudioClip landSound;
     [SerializeField] AudioClip bounceSound;
@@ -19,6 +20,7 @@ public class PlayerController : MonoBehaviour
     UIManager uiManager;
 
     [SerializeField] Material[] materials;
+    [SerializeField] float initialVisibilityRadius = 30f;
     [SerializeField] float visibilityRadius = 5f;
     [SerializeField] float visibilitySoftness = 0.5f;
 
@@ -70,7 +72,7 @@ public class PlayerController : MonoBehaviour
 
     private void Start()
     {
-        ChangeMaterialShaderNormal();
+        ChangeMaterialShaderSpherical();
 
         rb = GetComponent<Rigidbody>();
         anim = GetComponent<Animator>();
@@ -171,7 +173,7 @@ public class PlayerController : MonoBehaviour
                 case "isFinishLine":
                     rb.velocity = new Vector3(rb.velocity.x, 0, rb.velocity.z);
                     audioSource.PlayOneShot(checkpointSound);
-                    StartJump(boxHeightApex, boxDuration);
+                    StartJump(trampolineHeightApex, trampolineDuration);
 
                     // set current checkpoint
                     Vector3 finishLinePosition = hit.collider.gameObject.transform.position;
@@ -179,6 +181,7 @@ public class PlayerController : MonoBehaviour
                     hit.collider.gameObject.transform.position = finishLinePosition + new Vector3(0, -0.75f, 0);
                     hit.collider.gameObject.GetComponent<BoxCollider>().enabled = false;
                     starParticles.Play();
+                    Invoke("GameWin", 1f);
                     break;
             }
         }
@@ -207,7 +210,7 @@ public class PlayerController : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.E))
         {
-            ChangeMaterialShaderSpherical();
+            ChangeMaterialShaderNormal();
         }
 
         if (isGrounded && !isJumping)
@@ -233,6 +236,11 @@ public class PlayerController : MonoBehaviour
             mat.SetVector("_Position", transform.position);
         }
 
+    }
+
+    private void OnApplicationQuit() {
+        print("Application ending after " + Time.time + " seconds. Resetting shader.");
+        ChangeMaterialShaderNormal();
     }
 
     void MovePlayer()
@@ -333,8 +341,8 @@ public class PlayerController : MonoBehaviour
 
     IEnumerator AnimateVisibilityRadius()
     {
-        // change radius from 30 to 5
-        for (float i = 30; i >= visibilityRadius; i -= 0.1f)
+        // change radius
+        for (float i = initialVisibilityRadius; i >= visibilityRadius; i -= 0.1f)
         {
             foreach (Material mat in materials)
             {
@@ -342,5 +350,15 @@ public class PlayerController : MonoBehaviour
             }
             yield return new WaitForSeconds(0.01f);
         }
+    }
+
+    void GameWin()
+    {
+        uiManager.PlayGameWinAnimation();
+    }
+
+    public void PlayFootstepSound()
+    {
+        audioSource.PlayOneShot(footstepSounds[Random.Range(0, footstepSounds.Length)]);
     }
 }

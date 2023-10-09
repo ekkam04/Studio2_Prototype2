@@ -6,6 +6,7 @@ public class CloseGame : MonoBehaviour
 {
     public void EndGame()
     {
+        Time.timeScale = 1;
         Application.Quit();
     }
 }
